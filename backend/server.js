@@ -101,7 +101,16 @@ app.get('/admin/users', (req, res) => {
       }
     });
   });
-  
+  app.get('/user/:email', (req, res) => {
+    const email = req.params.email;
+    db.query(`SELECT * FROM users WHERE email = '${email}'`, (err, results) => {
+      if (err) {
+        res.status(500).send({ message: 'Error fetching user' });
+      } else {
+        res.send(results[0]);
+      }
+    });
+  });
 const port = 8080;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

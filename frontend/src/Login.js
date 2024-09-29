@@ -18,23 +18,35 @@ const Login = () => {
         const validationErrors = Validation(values);
         setErrors(validationErrors);
         if(validationErrors.name !== "" && validationErrors.email !== "" && validationErrors.password !== ""){
+            // axios.post("http://localhost:8080/login", values)
+            // .then(res=>{
+            //     if(res.data === "Login Success"){
+            //     navigate("/home");
+            //     }else{
+            //         alert("Login Failed");
+            //     }
+               
+            // })
+            // .catch(err=>console.log(err));
             axios.post("http://localhost:8080/login", values)
-            .then(res=>{
-                if(res.data === "Login Success"){
-                navigate("/home");
-                }else{
-                    alert("Login Failed");
-                }
-                // if (res.data === "Login Success") {
-                //     // Role-based redirection
-                //     if (res.data.role === "admin") {
-                //         navigate("/admin/users");  // Redirect to admin page
-                //     } else {
-                //         navigate("/home");  // Redirect to regular home page
-                //     }
-                // }
+            .then(res => {
+              if (res.data === "Login Success") {
+                axios.get(`http://localhost:8080/user/${values.email}`)
+                  .then(response => {
+                    if (response.data.role === 'admin') {
+                      navigate("/admin/users");
+                    } else {
+                      navigate("/home");
+                    }
+                  })
+                  .catch(error => {
+                    console.error(error);
+                  });
+              } else {
+                alert("Login Failed");
+              }
             })
-            .catch(err=>console.log(err));
+            .catch(err => console.log(err));
         }
     }
     const handleInput = (event) => {
