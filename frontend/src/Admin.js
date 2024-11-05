@@ -10,7 +10,7 @@ function Admin() {
       .then(response => {
         setUsers(response.data);
         setLoading(false);
-      })
+      },[])
       .catch(error => {
         console.error(error);
       });

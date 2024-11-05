@@ -64,7 +64,7 @@ const Login = () => {
             </div>
             <div className='mb-3'> 
                 <label htmlFor="email"><strong>Email:</strong></label>
-                <input onChange={handleInput} name="email" type="email" placeholder='Enter your email' onChange={handleInput} className='form-control rounded-0'/>
+                <input onChange={handleInput} name="email" type="email" placeholder='Enter your email' className='form-control rounded-0'/>
                 {errors.email && <span className='text-danger'>{errors.email}</span>}
             </div>
             <div className='mb-3'> 
@@ -80,5 +80,4 @@ const Login = () => {
     </div>
   )
 }
-
 export default Login
