@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function PasswordReset() {
   const [newPassword, setNewPassword] = useState('');
@@ -10,7 +12,6 @@ function PasswordReset() {
   const location = useLocation();
 
   useEffect(() => {
-    // Extract the email from the query parameter in the URL
     const queryParams = new URLSearchParams(location.search);
     const emailParam = queryParams.get('email');
     if (emailParam) {
@@ -24,8 +25,7 @@ function PasswordReset() {
     axios.post('http://localhost:8080/password-reset', { email, newPassword, temporaryPassword })
       .then((response) => {
         alert('Password reset successful!');
-        // Redirect user after successful password reset
-        window.location.href = '/'; // Change this to your desired redirect route
+        window.location.href = '/';
       })
       .catch((error) => {
         console.error('Password reset error:', error.response ? error.response.data.message : error.message);
@@ -34,28 +34,46 @@ function PasswordReset() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Email:</label>
-      <input type="email" value={email} onChange={(event)=>setEmail(event.target.value)} required />
-      <br />
-      <label>Temporary Password:</label>
-      <input
-        type="password"
-        value={temporaryPassword}
-        onChange={(event) => setTemporaryPassword(event.target.value)}
-        required
-      />
-      <br />
-      <label>New Password:</label>
-      <input
-        type="password"
-        value={newPassword}
-        onChange={(event) => setNewPassword(event.target.value)}
-        required
-      />
-      <br />
-      <button type="submit">Reset Password</button>
-    </form>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center mb-4">Reset Your Password</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Email:</label>
+            <input
+              type="email"
+              className="form-control"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Temporary Password:</label>
+            <input
+              type="password"
+              className="form-control"
+              value={temporaryPassword}
+              onChange={(event) => setTemporaryPassword(event.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">New Password:</label>
+            <input
+              type="password"
+              className="form-control"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-100">
+            Reset Password
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 

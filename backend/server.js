@@ -2,6 +2,8 @@
 const express = require('express');
 const app = express();
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const mysql = require('mysql');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -25,31 +27,73 @@ db.connect((err) => {
   }
 });
 
-app.use(express.json()); // For parsing JSON data
+app.use(express.json());
+// app.post('/login', (req, res) => {
+//   const { name, email, password } = req.body;
 
-// Login route
+//   const sql = "SELECT password FROM users WHERE name = ? AND email = ?";
+//   db.query(sql, [name, email], async (err, data) => {
+//     if (err) {
+//       console.error("Database error:", err);
+//       return res.status(500).json("Error");
+//     }
+
+//     if (data.length > 0) {
+//       const storedPasswordHash = data[0].password; // Stored bcrypt hash
+
+//       try {
+//         // Directly compare the plaintext input with bcrypt-hashed password
+//         const isValidPassword = await bcrypt.compare(password, storedPasswordHash);
+
+//         console.log("Input Password:", password);
+//         console.log("Stored Bcrypt Password Hash:", storedPasswordHash);
+//         console.log(`Is valid password: ${isValidPassword}`);
+
+//         if (isValidPassword) {
+//           console.log("Login successful");
+//           return res.json("Login Success");
+//         } else {
+//           console.log("Login failed");
+//           return res.json("Login Failed");
+//         }
+//       } catch (error) {
+//         console.error("Error during password comparison:", error);
+//         return res.status(500).json("Internal Server Error");
+//       }
+//     } else {
+//       console.log("User not found");
+//       return res.json("Login Failed");
+//     }
+//   });
+// });
 app.post('/login', (req, res) => {
+  const { name, email, password } = req.body;
+
   const sql = "SELECT password FROM users WHERE name = ? AND email = ?";
-  db.query(sql, [req.body.name, req.body.email], (err, data) => {
+  db.query(sql, [name, email], async (err, data) => {
     if (err) {
-      console.error(err);
-      return res.json("Error");
+      console.error("Database error:", err);
+      return res.status(500).json("Error");
     }
+
     if (data.length > 0) {
-      const storedPassword = data[0].password; // Fetch the stored password
-      const receivedPassword = req.body.password; // Fetch the password received from frontend
-      console.log(`Received password: ${receivedPassword}`);
-      console.log(`Stored password: ${storedPassword}`);
-      
-      const isValidPassword = receivedPassword === storedPassword; // Compare the passwords
-      console.log(`Is valid password: ${isValidPassword}`);
-      
-      if (isValidPassword) {
-        console.log("Login successful");
-        return res.json("Login Success");
-      } else {
-        console.log("Login failed");
-        return res.json("Login Failed");
+      const storedPasswordHash = data[0].password; // Stored bcrypt hash
+
+      try {
+        const sha256Password = crypto.createHash('sha256').update(password).digest('hex');
+
+        const isValidPassword = await bcrypt.compare(sha256Password, storedPasswordHash);
+
+        if (isValidPassword) {
+          console.log("Login successful");
+          return res.json("Login Success");
+        } else {
+          console.log("Login failed");
+          return res.json("Login Failed");
+        }
+      } catch (error) {
+        console.error("Error during password comparison:", error);
+        return res.status(500).json("Internal Server Error");
       }
     } else {
       console.log("User not found");
@@ -57,6 +101,8 @@ app.post('/login', (req, res) => {
     }
   });
 });
+
+
 // Define the route to get user details by email
 app.get('/user/:email', (req, res) => {
   const sql = "SELECT * FROM users WHERE email = ?";
@@ -124,9 +170,8 @@ const transporter = nodemailer.createTransport({
 // Signup route
 app.post('/signup', (req, res) => {
   const { email, username } = req.body;
-  const temporaryPassword = Math.random().toString(36).substring(2, 12); // Generate a temporary password
+  const temporaryPassword = Math.random().toString(36).substring(2, 12); 
 
-  // Make sure to use the correct field names for your table
   const query = `INSERT INTO users (email, name, password) VALUES (?, ?, ?)`;
 
   db.query(query, [email, username, temporaryPassword], (err, results) => {
@@ -153,42 +198,79 @@ app.post('/signup', (req, res) => {
     });
   });
 });
+// app.post('/password-reset', async (req, res) => {
+//   const { newPassword, email, temporaryPassword } = req.body;
 
-
-// Serve password reset page
-// app.get('/password-reset', (req, res) => {
-//   const filePath = path.join(__dirname, '../frontend/src/passwordreset.html');
-//   console.log('Serving password-reset from:', filePath);
-//   res.sendFile(filePath, (err) => {
+//   // Check if the provided temporary password matches what's stored
+//   db.query(`SELECT password FROM users WHERE email = ?`, [email], async (err, data) => {
 //     if (err) {
-//       console.error('Error sending passwordreset.html:', err);
-//       res.status(404).send('File not found');
+//       console.error(err);
+//       return res.status(500).json({ message: 'Password reset failed. Please try again.' });
+//     }
+
+//     if (data.length > 0) {
+//       const storedTempPassword = data[0].password;
+
+//       // Directly compare the provided temporary password
+//       if (storedTempPassword === temporaryPassword) {
+//         try {
+//           // Hash the new password using bcrypt
+//           const bcryptNewPassword = await bcrypt.hash(newPassword, 10);
+
+//           // Update the password in the database
+//           db.query(`UPDATE users SET password = ? WHERE email = ?`, [bcryptNewPassword, email], (err, results) => {
+//             if (err) {
+//               console.error(err);
+//               return res.status(500).json({ message: 'Failed to update password.' });
+//             }
+//             res.json({ message: 'Password reset successful.' });
+//           });
+//         } catch (error) {
+//           console.error('Error hashing new password:', error);
+//           res.status(500).json({ message: 'Error hashing password.' });
+//         }
+//       } else {
+//         res.status(400).json({ message: 'Invalid temporary password.' });
+//       }
+//     } else {
+//       res.status(404).json({ message: 'User not found.' });
 //     }
 //   });
 // });
-
-// Password reset route
-app.post('/password-reset', (req, res) => {
+app.post('/password-reset', async (req, res) => {
   const { newPassword, email, temporaryPassword } = req.body;
 
-  // First, check if the temporary password is correct
-  db.query(`SELECT password FROM users WHERE email = ?`, [email], (err, data) => {
+  // Check if the provided temporary password matches what's stored
+  db.query(`SELECT password FROM users WHERE email = ?`, [email], async (err, data) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ message: 'Password reset failed. Please try again.' });
     }
 
     if (data.length > 0) {
-      const storedTempPassword = data[0].password; // Retrieve the temporary password from the database
+      const storedTempPassword = data[0].password;
+
+      // Directly compare the provided temporary password (no SHA or bcrypt on temporary password)
       if (storedTempPassword === temporaryPassword) {
-        // If the temporary password matches, update to the new password
-        db.query(`UPDATE users SET password = ? WHERE email = ?`, [newPassword, email], (err, results) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Failed to update password.' });
-          }
-          res.json({ message: 'Password reset successful.' });
-        });
+        try {
+          // Step 1: Hash the new password with SHA-256
+          const sha256Password = crypto.createHash('sha256').update(newPassword).digest('hex');
+
+          // Step 2: Hash the SHA-256 result with bcrypt
+          const bcryptNewPassword = await bcrypt.hash(sha256Password, 10);
+
+          // Update the password in the database
+          db.query(`UPDATE users SET password = ? WHERE email = ?`, [bcryptNewPassword, email], (err, results) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).json({ message: 'Failed to update password.' });
+            }
+            res.json({ message: 'Password reset successful.' });
+          });
+        } catch (error) {
+          console.error('Error hashing new password:', error);
+          res.status(500).json({ message: 'Error hashing password.' });
+        }
       } else {
         res.status(400).json({ message: 'Invalid temporary password.' });
       }
@@ -197,6 +279,8 @@ app.post('/password-reset', (req, res) => {
     }
   });
 });
+
+
 
 const port = 8080;
 app.listen(port, () => {

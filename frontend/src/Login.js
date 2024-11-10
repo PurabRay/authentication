@@ -17,7 +17,7 @@ const Login = () => {
         event.preventDefault();
         const validationErrors = Validation(values);
         setErrors(validationErrors);
-        if(validationErrors.name !== "" && validationErrors.email !== "" && validationErrors.password !== ""){
+        if(!validationErrors.name && !validationErrors.email && !validationErrors.password){
             // axios.post("http://localhost:8080/login", values)
             // .then(res=>{
             //     if(res.data === "Login Success"){

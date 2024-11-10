@@ -1,105 +1,58 @@
-// import React,{ useState } from 'react'
-// import { Link, useNavigate } from 'react-router-dom'
-// import Validation from './SignupValidation';
-// import axios from 'axios';
-// const Signup = () => {
-//     const [values, setValues] = useState({
-//         name: '',
-//         email: '',
-//         password: ''
-//     })
-//     const [errors,setErrors] = useState({});
-//     const navigate=useNavigate();
-//     const handleSubmit = (event) => {
-//         event.preventDefault();
-//         const validationErrors = Validation(values);
-//         setErrors(validationErrors);
-//         if(validationErrors.name !== "" && validationErrors.email !== "" && validationErrors.password !== ""){
-//             axios.post("http://localhost:8080/signup", values)
-//             .then(res=>{
-//                 navigate("/");
-//             })
-//             .catch(err=>console.log(err));
-//         }
-            
-//     }
-//     const handleInput = (event) => {
-//         setValues({...values, [event.target.name]: event.target.value})
-//     }
-//   return (
-//     <div className='d-flex justify-content-center align-items-center vh-100 bg-primary'>
-//      <div className='bg-white p-3 rounded w-25'>
-//      <h2 className='d-flex'>Sign Up</h2>
-//         <form action="" onSubmit={handleSubmit}>
-//         <div className='mb-3'> 
-//                 <label htmlFor="name"><strong>Name:</strong></label>
-//                 <input name="name" type="text" placeholder='Enter your Name' onChange={handleInput} className='form-control rounded-0'/>
-//                 {errors.name && <span className='text-danger'>{errors.name}</span>}
-//             </div>
-//             <div className='mb-3'> 
-//                 <label htmlFor="email"><strong>Email:</strong></label>
-//                 <input name="email" type="email" placeholder='Enter your email' onChange={handleInput} className='form-control rounded-0'/>
-//                 {errors.email && <span className='text-danger'>{errors.email}</span>}
-//             </div>
-//             <div className='mb-3'> 
-//                 <label htmlFor="password"><strong>Password:</strong></label>
-//                 <input name="password" type="password" placeholder='Enter your email' onChange={handleInput} className='form-control rounded-0'/>
-//                 {errors.password && <span className='text-danger'>{errors.password}</span>}
-//             </div>
-//             <button type='submit' className='btn btn-success w-100 hover-light blue'>Sign Up</button>
-//             <p></p>
-//            <Link to="/" className='btn btn-default border d-flex justify-content-center align-items-center w-100'>Login</Link>
-//         </form>
-//      </div>
-//     </div>
-//   )
-// }
 
-// export default Signup
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 function Signup() {
-  const [email,setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const navigate = useNavigate();
 
-  
-const navigate = useNavigate();
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-
-const handleSubmit = (event) => {
-  event.preventDefault();
-  
-  axios.post('http://localhost:8080/signup', { email, username })
-  .then((response) => {
-    navigate('/password-reset');
-  })
-  .catch((error) => {
-    console.error('Signup error:', error);
-    alert('Signup failed. Please try again.');
-  });
-};
+    axios.post('http://localhost:8080/signup', { email, username })
+      .then((response) => {
+        navigate('/password-reset');
+      })
+      .catch((error) => {
+        console.error('Signup error:', error);
+        alert('Signup failed. Please try again.');
+      });
+  };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Email:</label>
-      <input
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        required
-      />
-      <br />
-      <label>Username:</label>
-      <input
-        type="text"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-        required
-      />
-      <br />
-      <button type="submit">Signup</button>
-    </form>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center mb-4">Sign Up</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Email:</label>
+            <input
+              type="email"
+              className="form-control"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Username:</label>
+            <input
+              type="text"
+              className="form-control"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-100">
+            Sign Up
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 
